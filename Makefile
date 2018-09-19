@@ -1,7 +1,10 @@
 all: lint test
 
-test:
+test: testdeps
 	go test -v ./...
+
+testdeps:
+	go get -d -v -t ./...
 
 lint: lintdeps
 	golint -set_exit_status *.go
@@ -9,4 +12,4 @@ lint: lintdeps
 lintdeps:
 	command -v golint >/dev/null || go get -u github.com/golang/lint/golint
 
-.PHONY: test lint lintdeps
+.PHONY: test testdeps lint lintdeps
