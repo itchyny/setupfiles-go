@@ -8,9 +8,18 @@ import (
 func parse(source string) ([]*file, error) {
 	var files []*file
 	for _, lines := range split(strings.Split(source, "\n")) {
-		files = append(files, &file{
-			lines[0], strings.Join(unindent(lines[1:]), "\n"),
-		})
+		if strings.Contains(lines[0], "->") {
+			xs := strings.SplitN(lines[0], "->", 2)
+			files = append(files, &file{
+				path:    strings.TrimSpace(xs[0]),
+				symlink: strings.TrimSpace(xs[1]),
+			})
+		} else {
+			files = append(files, &file{
+				path:     lines[0],
+				contents: strings.Join(unindent(lines[1:]), "\n"),
+			})
+		}
 	}
 	return files, nil
 }

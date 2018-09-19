@@ -17,6 +17,13 @@ func Create(dir string, source string) error {
 		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 			return err
 		}
+		if f.symlink != "" {
+			link := filepath.Join(filepath.Dir(path), f.symlink)
+			if err := os.Symlink(link, path); err != nil {
+				return err
+			}
+			continue
+		}
 		if err := ioutil.WriteFile(path, []byte(f.contents), 0644); err != nil {
 			return err
 		}
