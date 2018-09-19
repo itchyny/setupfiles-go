@@ -20,7 +20,7 @@ var testCases = []struct {
 	{
 		"one file",
 		`foo.txt`,
-		[]file{{"foo.txt", "", ""}},
+		[]file{{path: "foo.txt", contents: ""}},
 	},
 	{
 		"file and contents",
@@ -36,7 +36,10 @@ bar.txt
     bar
    bar
 `,
-		[]file{{"foo.txt", "foo\n\nfoo\n", ""}, {"bar.txt", "bar\n\n  bar\n bar\n", ""}},
+		[]file{
+			{path: "foo.txt", contents: "foo\n\nfoo\n"},
+			{path: "bar.txt", contents: "bar\n\n  bar\n bar\n"},
+		},
 	},
 	{
 		"tab indent",
@@ -53,7 +56,10 @@ bar.txt
 			bar
 	bar
 `,
-		[]file{{"foo.txt", "foo\n\t\n\nfoo\n", ""}, {"bar.txt", "\tbar\n\n\t\tbar\nbar\n", ""}},
+		[]file{
+			{path: "foo.txt", contents: "foo\n\t\n\nfoo\n"},
+			{path: "bar.txt", contents: "\tbar\n\n\t\tbar\nbar\n"},
+		},
 	},
 	{
 		"symlink",
@@ -61,7 +67,29 @@ bar.txt
 foo.txt -> bar.txt
 bar.txt
 	foobar`,
-		[]file{{"foo.txt", "foobar", "bar.txt"}, {"bar.txt", "foobar", ""}},
+		[]file{
+			{path: "foo.txt", contents: "foobar", symlink: "bar.txt"},
+			{path: "bar.txt", contents: "foobar"},
+		},
+	},
+	{
+		"directories",
+		`
+foo/bar/foo.txt -> ../bar.txt
+
+foo/bar.txt
+	foobar
+
+foo/baz/
+
+foo/qux -> baz
+`,
+		[]file{
+			{path: "foo/bar/foo.txt", contents: "foobar\n", symlink: "foo/bar.txt"},
+			{path: "foo/bar.txt", contents: "foobar\n"},
+			{path: "foo/baz/", isDir: true},
+			{path: "foo/qux/", isDir: true},
+		},
 	},
 }
 
@@ -75,12 +103,22 @@ func TestCreate(t *testing.T) {
 			defer os.Remove(dir)
 			for _, f := range testCase.files {
 				path := filepath.Join(dir, f.path)
+				if f.isDir {
+					fi, err := os.Stat(path)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if !fi.IsDir() {
+						t.Errorf("%s should be a directory but got %s", path, fi.Mode())
+					}
+					continue
+				}
 				cnt, err := ioutil.ReadFile(path)
 				if err != nil {
 					t.Fatal(err)
 				}
 				if f.contents != string(cnt) {
-					t.Errorf("contents should be %q but got %q", f.contents, string(cnt))
+					t.Errorf("contents of %s should be %q but got %q", path, f.contents, string(cnt))
 				}
 				fi, err := os.Lstat(path)
 				if err != nil {
@@ -95,7 +133,7 @@ func TestCreate(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					expected := filepath.Join(filepath.Dir(path), f.symlink)
+					expected := filepath.Join(dir, f.symlink)
 					if got != expected {
 						t.Errorf("%s should be a symlink to %s but %s", f.path, expected, got)
 					}
