@@ -1,8 +1,25 @@
 # setupfiles-go
-Create files and directories easily for tests in Golang.
+Create files and directories easily for tests in Go.
 
 ## Usage
 ```go
+dir, err := setupfiles.CreateTemp("test-setupfiles-sample", `
+bar.txt
+  bar
+  contents
+  here
+
+baz.txt -> foo/qux.txt
+
+foo/qux.txt
+  qux contents
+
+dir/
+`)
+if err != nil {
+  t.Fatal(err)
+}
+defer os.Remove(dir)
 ```
 
 ## Bug Tracker
