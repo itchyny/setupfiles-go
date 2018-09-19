@@ -20,7 +20,7 @@ var testCases = []struct {
 	{
 		"one file",
 		`foo.txt`,
-		[]file{{"foo.txt", ""}},
+		[]file{{"foo.txt", "", ""}},
 	},
 	{
 		"file and contents",
@@ -36,7 +36,7 @@ bar.txt
     bar
    bar
 `,
-		[]file{{"foo.txt", "foo\n\nfoo\n"}, {"bar.txt", "bar\n\n  bar\n bar\n"}},
+		[]file{{"foo.txt", "foo\n\nfoo\n", ""}, {"bar.txt", "bar\n\n  bar\n bar\n", ""}},
 	},
 	{
 		"tab indent",
@@ -53,7 +53,15 @@ bar.txt
 			bar
 	bar
 `,
-		[]file{{"foo.txt", "foo\n\t\n\nfoo\n"}, {"bar.txt", "\tbar\n\n\t\tbar\nbar\n"}},
+		[]file{{"foo.txt", "foo\n\t\n\nfoo\n", ""}, {"bar.txt", "\tbar\n\n\t\tbar\nbar\n", ""}},
+	},
+	{
+		"symlink",
+		`
+foo.txt -> bar.txt
+bar.txt
+	foobar`,
+		[]file{{"foo.txt", "foobar", "bar.txt"}, {"bar.txt", "foobar", ""}},
 	},
 }
 
@@ -73,6 +81,24 @@ func TestCreate(t *testing.T) {
 				}
 				if f.contents != string(cnt) {
 					t.Errorf("contents should be %q but got %q", f.contents, string(cnt))
+				}
+				fi, err := os.Lstat(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if fi.Mode()&os.ModeSymlink == 0 {
+					if f.symlink != "" {
+						t.Errorf("%s should be a symlink but %s", f.path, fi.Mode())
+					}
+				} else {
+					got, err := os.Readlink(path)
+					if err != nil {
+						t.Fatal(err)
+					}
+					expected := filepath.Join(filepath.Dir(path), f.symlink)
+					if got != expected {
+						t.Errorf("%s should be a symlink to %s but %s", f.path, expected, got)
+					}
 				}
 			}
 		})
