@@ -1,0 +1,17 @@
+version: "{build}"
+
+clone_folder: c:\gopath\src\github.com\itchyny\setupfiles-go
+
+environment:
+  GOPATH: c:\gopath
+
+install:
+  - go version
+  - go env
+
+build_script:
+
+test_script:
+  - go test -v ./...
+
+deploy: false
