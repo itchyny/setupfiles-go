@@ -14,6 +14,11 @@ func parse(source string) ([]*file, error) {
 				path:    strings.TrimSpace(xs[0]),
 				symlink: strings.TrimSpace(xs[1]),
 			})
+		} else if strings.HasSuffix(lines[0], "/") {
+			files = append(files, &file{
+				path:  strings.TrimSpace(lines[0]),
+				isDir: true,
+			})
 		} else {
 			files = append(files, &file{
 				path:     lines[0],

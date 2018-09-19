@@ -24,6 +24,12 @@ func Create(dir string, source string) error {
 			}
 			continue
 		}
+		if f.isDir {
+			if err := os.MkdirAll(path, 0755); err != nil {
+				return err
+			}
+			continue
+		}
 		if err := ioutil.WriteFile(path, []byte(f.contents), 0644); err != nil {
 			return err
 		}
