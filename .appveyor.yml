@@ -10,6 +10,7 @@ install:
   - go env
 
 build_script:
+  - go version
 
 test_script:
   - go test -v ./...
