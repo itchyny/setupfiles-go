@@ -1,6 +1,10 @@
 # setupfiles-go
 Create files and directories easily for tests in Go.
 
+When we setup sample files and directories for testing, we have to create the base directory, write files and catch errors.
+Doing these things is not what we have to care in testing.
+Using this setupfiles package, you can pass a recipe for what the file contents and directory structure should be to the library and it creates the files and directories.
+
 ## Usage
 ```go
 dir, err := setupfiles.CreateTemp("test-setupfiles-sample", `
