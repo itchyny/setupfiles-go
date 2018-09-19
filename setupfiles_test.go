@@ -100,7 +100,7 @@ func TestCreate(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer os.Remove(dir)
+			defer os.RemoveAll(dir)
 			for _, f := range testCase.files {
 				path := filepath.Join(dir, f.path)
 				if f.isDir {

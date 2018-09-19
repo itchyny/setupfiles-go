@@ -23,7 +23,7 @@ dir/
 if err != nil {
   t.Fatal(err)
 }
-defer os.Remove(dir)
+defer os.RemoveAll(dir)
 ```
 
 ## Bug Tracker
